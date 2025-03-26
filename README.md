@@ -22,3 +22,6 @@ ml-api-system/
 ├── .gitignore             # Ignore unnecessary files
 ├── requirements.txt       # List of dependencies (numpy, pandas, sklearn, etc.)
 ├── README.md              # Project description, setup, how to run
+
+## Anaconda environment
+ml_env
