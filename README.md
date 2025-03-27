@@ -15,7 +15,7 @@ ml-api-system/
 │   ├── train.py           # Training the ML model
 │   ├── predict.py         # Load model + make predictions
 │   └── model/             # Folder to store trained model files (.pkl, etc.)
-├── api/                   # API code (FastAPI or Flask)
+├── api/                   # API code (FastAPI or Flask) 
 │   └── main.py            # Main entry point for your API
 ├── ui/                    # UI integrations or exports for Power BI/PowerApps
 ├── notebooks/             # Jupyter notebooks for experimentation (optional)
