@@ -1,0 +1,154 @@
+import os
+import re
+import pandas as pd
+from collections import defaultdict
+from pathlib import Path
+
+# --- Config ---
+PROJECT_ROOT = r"L:\\01_Projects"
+TARGET_FILENAME = "OUTPUT.csv"
+SAVE_PATH = Path(r"C:\\Users\\sietse.duister\\OneDrive - De Voogt Naval Architects\\00_specialists group\\1_projects\\2_ML system development\\1_git_ML system development\\1_data\\raw_CFD.xlsx")
+
+revision_pattern = re.compile(r'rev([A-Z])', re.IGNORECASE)
+
+def find_all_output_csvs(build_path):
+    revision_map = defaultdict(list)
+    for root, dirs, files in os.walk(build_path):
+        # Only consider OUTPUT.csv if it's in a folder exactly named 'Results'
+        if not any(part.lower() == "results" for part in root.split(os.sep)):
+            continue
+
+        # Try to infer revision from the folder name instead of the file name
+        revision = None
+        for folder in root.split(os.sep):
+            match = revision_pattern.search(folder)
+            if match:
+                revision = match.group(1).upper()
+                break
+
+        for file in files:
+            if file.lower() == TARGET_FILENAME.lower():
+                full_path = os.path.join(root, file)
+                if revision:
+                    revision_map[revision].append(full_path)
+    return revision_map
+
+def is_bare_hull(first_lines):
+    return "BH" in first_lines[0]  # case-sensitive check for BH in the first line
+
+def parse_output_csv(file_path, build_number):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            lines = [line.strip() for line in f if line.strip()]
+
+        # Check for bare hull only based on first line
+        if not is_bare_hull(lines):
+            return pd.DataFrame()
+
+        # Extract metadata (first section before dashes)
+        metadata = {}
+        for line in lines:
+            if line.startswith("-"):
+                break
+            parts = line.split(",")
+            if len(parts) >= 2:
+                key = parts[0].strip().lower().replace(" ", "_")
+                value = parts[1].strip()
+                if key in ["length_waterline", "draft", "lcg", "vcg", "displacement"]:
+                    try:
+                        metadata[key] = float(value)
+                    except ValueError:
+                        metadata[key] = value
+
+        # CFD data starts after the dashed line
+        table_start_idx = next(i for i, line in enumerate(lines) if line.startswith("Velocity"))
+        raw_headers = lines[table_start_idx].split(",")
+        data_lines = lines[table_start_idx + 2:]  # skip unit line
+
+        # Ensure headers are unique
+        seen = {}
+        headers = []
+        for h in raw_headers:
+            h = h.strip()
+            if not h:
+                h = "Unnamed"
+            if h in seen:
+                seen[h] += 1
+                h = f"{h}_{seen[h]}"
+            else:
+                seen[h] = 0
+            headers.append(h)
+
+        cfd_data = pd.DataFrame([line.split(",") for line in data_lines], columns=headers)
+        cfd_data = cfd_data.apply(pd.to_numeric, errors="coerce")
+
+        # Add metadata to each row
+        for key, val in metadata.items():
+            cfd_data[key] = val
+
+        # Add identifiers
+        cfd_data["build_number"] = build_number
+        cfd_data["source_file"] = file_path
+
+        # Reorder columns
+        column_order = [
+            "build_number", "Velocity", "Rf", "Rp", "Rtot", "Heave", "Pitch", "Wake fraction", "CPU time",
+            "draft", "length_waterline", "lcg", "vcg", "displacement", "source_file"
+        ]
+        cfd_data = cfd_data[[col for col in column_order if col in cfd_data.columns]]
+
+        return cfd_data
+
+    except Exception as e:
+        print(f"❌ Error parsing {file_path}: {e}")
+        return pd.DataFrame()
+
+if __name__ == "__main__":
+    print(f"🔍 Scanning all build folders in: {PROJECT_ROOT}\n")
+
+    all_builds_data = []
+    build_folders = [f for f in os.listdir(PROJECT_ROOT) if os.path.isdir(os.path.join(PROJECT_ROOT, f)) and f.startswith("BN")]
+
+    for build_number in build_folders:
+        build_path = os.path.join(PROJECT_ROOT, build_number)
+        revision_map = find_all_output_csvs(build_path)
+
+        if revision_map:
+            sorted_revisions = sorted(revision_map.keys(), reverse=True)
+
+            for rev in sorted_revisions:
+                files = revision_map[rev]
+                print(f"🔍 Found {len(files)} file(s) in revision Rev{rev} for build {build_number}:")
+                for f in files:
+                    print("   •", f)
+
+                all_dfs = []
+                for f in files:
+                    df = parse_output_csv(f, build_number)
+                    if not df.empty:
+                        all_dfs.append(df)
+
+                if len(all_dfs) >= 2:
+                    all_builds_data.extend(all_dfs)
+                    print(f"✅ Using revision Rev{rev} with {len(all_dfs)} draughts for build {build_number}.")
+                    break
+                elif len(all_dfs) == 1:
+                    all_builds_data.append(all_dfs[0])
+                    print(f"✅ Using revision Rev{rev} with 1 draught for build {build_number}.")
+                    break
+                else:
+                    print(f"⚠️ No valid CFD data in Rev{rev} for build {build_number}.")
+        else:
+            print(f"❌ No OUTPUT.csv files found for build {build_number}.")
+
+    if all_builds_data:
+        combined_df = pd.concat(all_builds_data, ignore_index=True)
+        print("\n📈 Final combined dataset:")
+        print(combined_df)
+        print(f"\n✅ Total builds included: {combined_df['build_number'].nunique()} | Total samples: {len(combined_df)}")
+
+        # Save to Excel
+        combined_df.to_excel(SAVE_PATH, index=False)
+        print(f"\n💾 Data saved to Excel at: {SAVE_PATH}")
+    else:
+        print("❌ No usable CFD data found across all builds.")

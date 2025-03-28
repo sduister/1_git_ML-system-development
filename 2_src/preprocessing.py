@@ -7,7 +7,6 @@ from pathlib import Path
 from tabulate import tabulate
 
 # Config
-BUILD_NUMBER = "BN716"
 PROJECT_ROOT = r"L:\\01_Projects"
 TARGET_SHEET = "CFD Resistance"
 
@@ -31,8 +30,8 @@ HYDROSTAT_CELLS = {
 }
 
 def extract_metadata_from_filename(filename):
-    revision_match = re.search(r'Rev([A-Z])', filename)
-    revision = revision_match.group(1) if revision_match else None
+    revision_match = re.search(r'rev([A-Z])', filename, re.IGNORECASE)
+    revision = revision_match.group(1).upper() if revision_match else None
     return revision
 
 def find_candidate_excels(build_folder, build_number):
@@ -40,10 +39,10 @@ def find_candidate_excels(build_folder, build_number):
     for root, _, files in os.walk(build_folder):
         for file in files:
             if (
-                file.startswith("TDS_")
-                and build_number in file
-                and "BH" in file
-                and file.endswith(".xlsx")
+                file.lower().startswith("tds_")
+                and "bh" in file.lower()
+                and "rev" in file.lower()
+                and file.lower().endswith(".xlsx")
             ):
                 revision = extract_metadata_from_filename(file)
                 if revision:
@@ -120,31 +119,39 @@ def group_and_select_best(candidates, app, build_number):
                 file_info["data"] = data
                 valid_files.append(file_info)
 
-        if len(valid_files) >= 2:
-            print(f"✅ Using revision Rev{revision} with {len(valid_files)} valid CFD files.")
+        if len(valid_files) >= 1:
+            print(f"✅ Using revision Rev{revision} with {len(valid_files)} valid CFD files for build {build_number}.")
             return valid_files
 
-    print("❌ No revision with ≥2 valid CFD draught files found.")
+    print(f"❌ No revision with ≥1 valid CFD draught file found for build {build_number}.")
     return []
 
 if __name__ == "__main__":
-    build_dir = os.path.join(PROJECT_ROOT, BUILD_NUMBER)
-    print(f"🔍 Searching in: {build_dir}")
+    print(f"🔍 Scanning all build folders in: {PROJECT_ROOT}\n")
 
-    candidates = find_candidate_excels(build_dir, BUILD_NUMBER)
-    print(f"📂 Found {len(candidates)} candidate BH Excel files.")
+    # Find all build folders (assumes folders named like 'BNxxx')
+    build_folders = [f for f in os.listdir(PROJECT_ROOT) if os.path.isdir(os.path.join(PROJECT_ROOT, f)) and f.startswith("BN")]
 
     app = xw.App(visible=False)
     app.display_alerts = False
     app.screen_updating = False
 
-    try:
-        selected_files = group_and_select_best(candidates, app, BUILD_NUMBER)
+    all_data = []
 
-        all_data = []
-        for file in selected_files:
-            for row in file["data"]:
-                all_data.append(row)
+    try:
+        for build_number in build_folders:
+            build_dir = os.path.join(PROJECT_ROOT, build_number)
+            candidates = find_candidate_excels(build_dir, build_number)
+
+            if not candidates:
+                print(f"⚠️ No candidate Excel files found for build {build_number}.")
+                continue
+
+            selected_files = group_and_select_best(candidates, app, build_number)
+
+            for file in selected_files:
+                for row in file["data"]:
+                    all_data.append(row)
 
         if all_data:
             df = pd.DataFrame(all_data)
@@ -153,13 +160,21 @@ if __name__ == "__main__":
             parquet_path = Path(r"C:\Users\sietse.duister\OneDrive - De Voogt Naval Architects\00_specialists group\1_projects\2_ML system development\1_git_ML system development\1_data\raw_generated.parquet")
             df.to_parquet(parquet_path, index=False)
 
-            print(f"\n✅ Data saved to: {parquet_path}")
+            print(f"\n✅ Combined data saved to: {parquet_path}")
 
-            # Pretty print
-            print("\n📋 Preview of saved data:")
-            print(tabulate(df.head(10), headers="keys", tablefmt="fancy_grid"))
+            # Summary info
+            unique_builds = df['build_number'].nunique()
+            total_samples = len(df)
+            print(f"\n📈 Summary:")
+            print(f"• Number of builds included: {unique_builds}")
+            print(f"• Total number of samples: {total_samples}")
+
+            # Configure display and print compact table
+            pd.set_option('display.max_rows', None)
+            print("\n📋 Full preview of combined data:")
+            print(tabulate(df, headers="keys", tablefmt="github", showindex=False))
 
         else:
-            print("❌ No valid CFD data extracted.")
+            print("❌ No valid CFD data extracted across all builds.")
     finally:
         app.quit()
