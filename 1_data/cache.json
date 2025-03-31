@@ -1,0 +1,867 @@
+[
+    {
+        "file": "L:\\01_Projects\\BN1012\\02_Appended_Hull\\revE\\T3710\\Results\\Output.csv",
+        "geometry": "BN1012",
+        "revision": "E"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1012\\02_Appended_Hull\\revF\\T3880\\Results\\Output.csv",
+        "geometry": "BN1012",
+        "revision": "F"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1012\\02_Appended_Hull\\revI\\Results\\Output_.csv",
+        "geometry": "BN1012",
+        "revision": "I"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1012\\02_Appended_Hull\\revK\\Results\\Output.csv",
+        "geometry": "BN1012",
+        "revision": "K"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1012\\02_Appended_Hull\\revM\\T3745\\00_base\\Output.csv",
+        "geometry": "BN1012",
+        "revision": "M"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1012\\02_Appended_Hull\\revM\\T3850\\Results\\Output.csv",
+        "geometry": "BN1012",
+        "revision": "M"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1012\\03_Trimwedge_Optimization\\revJ\\TW00\\Results\\Output.csv",
+        "geometry": "BN1012",
+        "revision": "J"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1012\\03_Trimwedge_Optimization\\revJ\\TW08\\Results\\Output.csv",
+        "geometry": "BN1012",
+        "revision": "J"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1012\\03_Trimwedge_Optimization\\revL\\Results\\Output.csv",
+        "geometry": "BN1012",
+        "revision": "L"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1012\\05_Wake_Field\\revG\\Input\\Output.csv",
+        "geometry": "BN1012",
+        "revision": "G"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1012\\05_Wake_Field\\revH\\Input\\Output.csv",
+        "geometry": "BN1012",
+        "revision": "H"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1012\\05_Wake_Field\\revN\\Input\\Output.csv",
+        "geometry": "BN1012",
+        "revision": "N"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1013\\02_Appended_Hull\\revB\\T4000\\Input\\Output.csv",
+        "geometry": "BN1013",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1013\\02_Appended_Hull\\revB\\T4200\\Input\\Output.csv",
+        "geometry": "BN1013",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1013\\02_Appended_Hull\\revC\\T4200\\Results\\Output.csv",
+        "geometry": "BN1013",
+        "revision": "C"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1013\\02_Appended_Hull\\revD\\T4200\\Output.csv",
+        "geometry": "BN1013",
+        "revision": "D"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1016\\01_Bare_Hull\\revA\\Results\\Output_.csv",
+        "geometry": "BN1016",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1016\\01_Bare_Hull\\revB\\Results\\Output.csv",
+        "geometry": "BN1016",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1016\\02_Appended_Hull\\revA\\Results\\MaxSeaTrialDraft\\Output.csv",
+        "geometry": "BN1016",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1016\\02_Appended_Hull\\revA\\Results\\SeaTrialDraft\\Output_.csv",
+        "geometry": "BN1016",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1016\\02_Appended_Hull\\revB\\Results\\Output.csv",
+        "geometry": "BN1016",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\BN1016\\02_Appended_Hull\\revB\\Results\\MaxSeaTrialDraft\\Output.csv",
+        "geometry": "BN1016",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\BN710\\02_Appended_Hull\\revN\\T3570\\Results\\Output.csv",
+        "geometry": "BN710",
+        "revision": "N"
+    },
+    {
+        "file": "L:\\01_Projects\\BN710\\02_Appended_Hull\\revN\\T3700\\Results\\Output.csv",
+        "geometry": "BN710",
+        "revision": "N"
+    },
+    {
+        "file": "L:\\01_Projects\\BN710\\02_Appended_Hull\\revO\\T3570\\Input\\Output.csv",
+        "geometry": "BN710",
+        "revision": "O"
+    },
+    {
+        "file": "L:\\01_Projects\\BN710\\02_Appended_Hull\\revO\\T3700\\Input\\Output.csv",
+        "geometry": "BN710",
+        "revision": "O"
+    },
+    {
+        "file": "L:\\01_Projects\\BN710\\02_Appended_Hull\\revP\\Results\\Output.csv",
+        "geometry": "BN710",
+        "revision": "P"
+    },
+    {
+        "file": "L:\\01_Projects\\BN710\\03_Trim_Wig_Optimization\\TW00DGR_NOAD\\Output.csv",
+        "geometry": "BN710",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN711\\01_Bare_Hull\\revI\\Results\\Output.csv",
+        "geometry": "BN711",
+        "revision": "I"
+    },
+    {
+        "file": "L:\\01_Projects\\BN711\\02_Appended_Hull\\revF\\T3450\\Result\\Output_.csv",
+        "geometry": "BN711",
+        "revision": "F"
+    },
+    {
+        "file": "L:\\01_Projects\\BN711\\02_Appended_Hull\\revG\\T3450\\Results\\Output_.csv",
+        "geometry": "BN711",
+        "revision": "G"
+    },
+    {
+        "file": "L:\\01_Projects\\BN711\\02_Appended_Hull\\revI\\T3600\\Results\\Output.csv",
+        "geometry": "BN711",
+        "revision": "I"
+    },
+    {
+        "file": "L:\\01_Projects\\BN711\\02_Appended_Hull\\revJ\\T3350\\Results\\Output_.csv",
+        "geometry": "BN711",
+        "revision": "J"
+    },
+    {
+        "file": "L:\\01_Projects\\BN711\\02_Appended_Hull\\revJ\\T3450\\Input\\Output_.csv",
+        "geometry": "BN711",
+        "revision": "J"
+    },
+    {
+        "file": "L:\\01_Projects\\BN711\\03_Trimwedge_Optimization\\revH\\TW00\\Results\\Output.csv",
+        "geometry": "BN711",
+        "revision": "H"
+    },
+    {
+        "file": "L:\\01_Projects\\BN712\\06_Echosounder\\Results\\Output.csv",
+        "geometry": "BN712",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN714\\00_IDE\\02_NX_Geometry\\04_Validation\\Design1\\12-16knts\\Output.csv",
+        "geometry": "BN714",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN714\\01_Bare_Hull\\revA\\BN710_Comparison\\Output.csv",
+        "geometry": "BN714",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\BN714\\01_Bare_Hull\\revA\\Input\\Output.csv",
+        "geometry": "BN714",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\BN714\\01_Bare_Hull\\revB\\T3640\\Input\\Output.csv",
+        "geometry": "BN714",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\BN714\\01_Bare_Hull\\revD\\Expired\\Input\\Output.csv",
+        "geometry": "BN714",
+        "revision": "D"
+    },
+    {
+        "file": "L:\\01_Projects\\BN714\\01_Bare_Hull\\revE\\Input\\Output.csv",
+        "geometry": "BN714",
+        "revision": "E"
+    },
+    {
+        "file": "L:\\01_Projects\\BN714\\01_Bare_Hull\\revG\\Input\\Output.csv",
+        "geometry": "BN714",
+        "revision": "G"
+    },
+    {
+        "file": "L:\\01_Projects\\BN714\\01_Bare_Hull\\revH\\Input\\Output.csv",
+        "geometry": "BN714",
+        "revision": "H"
+    },
+    {
+        "file": "L:\\01_Projects\\BN714\\02_Appended_Hull\\revF\\Results\\Output.csv",
+        "geometry": "BN714",
+        "revision": "F"
+    },
+    {
+        "file": "L:\\01_Projects\\BN714\\02_Appended_Hull\\revI\\T3640\\Input\\Output.csv",
+        "geometry": "BN714",
+        "revision": "I"
+    },
+    {
+        "file": "L:\\01_Projects\\BN714\\02_Appended_Hull\\revI\\T3770\\Input\\Output.csv",
+        "geometry": "BN714",
+        "revision": "I"
+    },
+    {
+        "file": "L:\\01_Projects\\BN715\\01_Bare_Hull\\revB\\Input\\Output.csv",
+        "geometry": "BN715",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\BN715\\01_Bare_Hull\\revE\\Input\\Output.csv",
+        "geometry": "BN715",
+        "revision": "E"
+    },
+    {
+        "file": "L:\\01_Projects\\BN715\\01_Bare_Hull\\revF\\Results\\Output.csv",
+        "geometry": "BN715",
+        "revision": "F"
+    },
+    {
+        "file": "L:\\01_Projects\\BN715\\01_Bare_Hull\\revG\\Results\\Output.csv",
+        "geometry": "BN715",
+        "revision": "G"
+    },
+    {
+        "file": "L:\\01_Projects\\BN715\\02_Appendage_Hull\\revC\\Result\\Output.csv",
+        "geometry": "BN715",
+        "revision": "C"
+    },
+    {
+        "file": "L:\\01_Projects\\BN715\\02_Appendage_Hull\\revE\\T3500\\Results\\Output.csv",
+        "geometry": "BN715",
+        "revision": "E"
+    },
+    {
+        "file": "L:\\01_Projects\\BN715\\05_Wake_Field\\revB\\Output.csv",
+        "geometry": "BN715",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\BN715\\zz_DO\\Validation\\Design1\\Input\\Output.csv",
+        "geometry": "BN715",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN716\\01_Bare_Hull\\revB\\Results\\Output.csv",
+        "geometry": "BN716",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\BN716\\01_Bare_Hull\\revC\\Results\\Output_.csv",
+        "geometry": "BN716",
+        "revision": "C"
+    },
+    {
+        "file": "L:\\01_Projects\\BN716\\01_Bare_Hull\\revD\\Results\\Output.csv",
+        "geometry": "BN716",
+        "revision": "D"
+    },
+    {
+        "file": "L:\\01_Projects\\BN716\\01_Bare_Hull\\revE\\Results\\Output_.csv",
+        "geometry": "BN716",
+        "revision": "E"
+    },
+    {
+        "file": "L:\\01_Projects\\BN716\\01_Bare_Hull\\revF\\2knots\\Results\\Output.csv",
+        "geometry": "BN716",
+        "revision": "F"
+    },
+    {
+        "file": "L:\\01_Projects\\BN716\\02_Appended_Hull\\revA\\Results_T335m\\Output.csv",
+        "geometry": "BN716",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\BN716\\02_Appended_Hull\\revA\\Results_T350m\\Output.csv",
+        "geometry": "BN716",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\BN716\\02_Appended_Hull\\revB\\Results_T335m\\Output.csv",
+        "geometry": "BN716",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\BN716\\02_Appended_Hull\\revC\\Results_T335m\\Output_.csv",
+        "geometry": "BN716",
+        "revision": "C"
+    },
+    {
+        "file": "L:\\01_Projects\\BN716\\02_Appended_Hull\\revC\\Results_T350m\\Output_.csv",
+        "geometry": "BN716",
+        "revision": "C"
+    },
+    {
+        "file": "L:\\01_Projects\\BN716\\Roll_Decay\\Results\\Roll_decay\\0.55\\Output.csv",
+        "geometry": "BN716",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN717\\01_Bare_Hull\\revL\\Results\\Output.csv",
+        "geometry": "BN717",
+        "revision": "L"
+    },
+    {
+        "file": "L:\\01_Projects\\BN717\\02_Appendage_Hull\\AH_revL_T=2.25\\Results\\Output.csv",
+        "geometry": "BN717",
+        "revision": "L"
+    },
+    {
+        "file": "L:\\01_Projects\\BN717\\02_Appendage_Hull\\AH_revO\\Results\\Output.csv",
+        "geometry": "BN717",
+        "revision": "O"
+    },
+    {
+        "file": "L:\\01_Projects\\BN718\\01_Bare_Hull\\revI\\Results\\Output.csv",
+        "geometry": "BN718",
+        "revision": "I"
+    },
+    {
+        "file": "L:\\01_Projects\\BN718\\01_Bare_Hull\\revJ\\Results\\Output.csv",
+        "geometry": "BN718",
+        "revision": "J"
+    },
+    {
+        "file": "L:\\01_Projects\\BN718\\02_Appended_Hull\\revF\\Results\\Output.csv",
+        "geometry": "BN718",
+        "revision": "F"
+    },
+    {
+        "file": "L:\\01_Projects\\BN718\\02_Appended_Hull\\revJ\\Results\\T1p7m\\Output.csv",
+        "geometry": "BN718",
+        "revision": "J"
+    },
+    {
+        "file": "L:\\01_Projects\\BN718\\02_Appended_Hull\\revJ\\Results\\T1p8m\\Output.csv",
+        "geometry": "BN718",
+        "revision": "J"
+    },
+    {
+        "file": "L:\\01_Projects\\BN719\\01_Bare_Hull\\revA\\Results\\Output.csv",
+        "geometry": "BN719",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\BN719\\02_Appended_Hull\\revB\\Results\\Output.csv",
+        "geometry": "BN719",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\BN808\\07_Scoop_Investigation\\07_Scoop_Investigation\\Phase1\\Option00_on\\T3750\\Output.csv",
+        "geometry": "BN808",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN808\\07_Scoop_Investigation\\07_Scoop_Investigation\\Phase1\\Option00_on\\T4000\\Output.csv",
+        "geometry": "BN808",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN808\\07_Scoop_Investigation\\07_Scoop_Investigation\\Phase1\\Option00_on\\T4250\\Output.csv",
+        "geometry": "BN808",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN808\\10_Resistance_Check_V1302011_V01_201810\\Results\\Output.csv",
+        "geometry": "BN808",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN816\\01_Bare_Hull\\01_Bare_hull_STAR_V15.06\\revE\\Results\\Output.csv",
+        "geometry": "BN816",
+        "revision": "E"
+    },
+    {
+        "file": "L:\\01_Projects\\BN816\\05_Wake_Field\\F01\\Results\\WFNOM\\Output.csv",
+        "geometry": "BN816",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN820\\02_Appended_Hull\\RevT\\Results\\Output.csv",
+        "geometry": "BN820",
+        "revision": "T"
+    },
+    {
+        "file": "L:\\01_Projects\\BN820\\02_Appended_Hull\\RevU\\T3450\\Results\\Output.csv",
+        "geometry": "BN820",
+        "revision": "U"
+    },
+    {
+        "file": "L:\\01_Projects\\BN820\\02_Appended_Hull\\RevU\\T3550\\Results\\Output.csv",
+        "geometry": "BN820",
+        "revision": "U"
+    },
+    {
+        "file": "L:\\01_Projects\\BN821\\01_Bare_Hull\\revG\\Results\\Output.csv",
+        "geometry": "BN821",
+        "revision": "G"
+    },
+    {
+        "file": "L:\\01_Projects\\BN821\\02_Appended_Hull\\00_Expired\\00_grid_and_physics_study\\revJ\\revJ_0\\Results\\Output.csv",
+        "geometry": "BN821",
+        "revision": "J"
+    },
+    {
+        "file": "L:\\01_Projects\\BN821\\02_Appended_Hull\\revH\\T4850\\Results\\Output.csv",
+        "geometry": "BN821",
+        "revision": "H"
+    },
+    {
+        "file": "L:\\01_Projects\\BN821\\02_Appended_Hull\\revH\\T5050\\Results\\Output.csv",
+        "geometry": "BN821",
+        "revision": "H"
+    },
+    {
+        "file": "L:\\01_Projects\\BN821\\02_Appended_Hull\\revI\\TW_0.0deg\\Results\\Output.csv",
+        "geometry": "BN821",
+        "revision": "I"
+    },
+    {
+        "file": "L:\\01_Projects\\BN821\\02_Appended_Hull\\revL\\Result\\Output.csv",
+        "geometry": "BN821",
+        "revision": "L"
+    },
+    {
+        "file": "L:\\01_Projects\\BN822\\02_Appended_Hull\\revC\\T3600\\Results\\Output.csv",
+        "geometry": "BN822",
+        "revision": "C"
+    },
+    {
+        "file": "L:\\01_Projects\\BN822\\02_Appended_Hull\\revC\\T3700\\Results\\Output.csv",
+        "geometry": "BN822",
+        "revision": "C"
+    },
+    {
+        "file": "L:\\01_Projects\\BN822\\02_Appended_Hull\\revJ\\T3400\\Input\\Output.csv",
+        "geometry": "BN822",
+        "revision": "J"
+    },
+    {
+        "file": "L:\\01_Projects\\BN822\\02_Appended_Hull\\revJ\\T3500\\Input\\Output.csv",
+        "geometry": "BN822",
+        "revision": "J"
+    },
+    {
+        "file": "L:\\01_Projects\\BN822\\02_Appended_Hull\\revL\\3300\\Input\\Output.csv",
+        "geometry": "BN822",
+        "revision": "L"
+    },
+    {
+        "file": "L:\\01_Projects\\BN822\\02_Appended_Hull\\revL\\3400\\Input\\Output.csv",
+        "geometry": "BN822",
+        "revision": "L"
+    },
+    {
+        "file": "L:\\01_Projects\\BN822\\02_Appended_Hull\\revL\\3500\\Input\\Output.csv",
+        "geometry": "BN822",
+        "revision": "L"
+    },
+    {
+        "file": "L:\\01_Projects\\BN824\\01_Bare_Hull\\FAD\\revO\\Result\\Output.csv",
+        "geometry": "BN824",
+        "revision": "O"
+    },
+    {
+        "file": "L:\\01_Projects\\BN825\\01_Bare_Hull\\Results\\Output.csv",
+        "geometry": "BN825",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN826\\00_Apendages\\Output.csv",
+        "geometry": "BN826",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN826\\01_Bare_Hull\\Rev_F\\Results\\Output.csv",
+        "geometry": "BN826",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN826\\02_Appendages_Hull\\revD\\Results\\Output.csv",
+        "geometry": "BN826",
+        "revision": "D"
+    },
+    {
+        "file": "L:\\01_Projects\\BN826\\02_Appendages_Hull\\revE\\Results\\Output.csv",
+        "geometry": "BN826",
+        "revision": "E"
+    },
+    {
+        "file": "L:\\01_Projects\\BN826\\02_Appendages_Hull\\revG\\Results\\Output_.csv",
+        "geometry": "BN826",
+        "revision": "G"
+    },
+    {
+        "file": "L:\\01_Projects\\BN826\\02_Appendages_Hull\\revH\\Results\\Output.csv",
+        "geometry": "BN826",
+        "revision": "H"
+    },
+    {
+        "file": "L:\\01_Projects\\BN826\\02_Appendages_Hull\\revI\\Results\\Output.csv",
+        "geometry": "BN826",
+        "revision": "I"
+    },
+    {
+        "file": "L:\\01_Projects\\BN826\\02_Appendages_Hull\\revJ\\Results\\Output.csv",
+        "geometry": "BN826",
+        "revision": "J"
+    },
+    {
+        "file": "L:\\01_Projects\\BN826\\02_Appendages_Hull\\revK\\Results_scoop1B\\Output.csv",
+        "geometry": "BN826",
+        "revision": "K"
+    },
+    {
+        "file": "L:\\01_Projects\\BN826\\02_Appendages_Hull\\revK\\Results_T338m\\Output.csv",
+        "geometry": "BN826",
+        "revision": "K"
+    },
+    {
+        "file": "L:\\01_Projects\\BN826\\02_Appendages_Hull\\revL\\Option 1\\Results\\Output.csv",
+        "geometry": "BN826",
+        "revision": "L"
+    },
+    {
+        "file": "L:\\01_Projects\\BN826\\02_Appendages_Hull\\revM\\T3430\\Results\\Output.csv",
+        "geometry": "BN826",
+        "revision": "M"
+    },
+    {
+        "file": "L:\\01_Projects\\BN826\\02_Appendages_Hull\\revM\\T3570\\Results\\Output.csv",
+        "geometry": "BN826",
+        "revision": "M"
+    },
+    {
+        "file": "L:\\01_Projects\\BN828\\01_Bare_Hull\\revA\\Trial Simulations\\Mesh Trial\\Results\\Output.csv",
+        "geometry": "BN828",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\BN828\\01_Bare_Hull\\revB\\Results\\Output_.csv",
+        "geometry": "BN828",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\BN828\\01_Bare_Hull\\revC\\Results\\Output.csv",
+        "geometry": "BN828",
+        "revision": "C"
+    },
+    {
+        "file": "L:\\01_Projects\\BN828\\02_Appended_Hull\\revD\\T3500\\Results\\Output.csv",
+        "geometry": "BN828",
+        "revision": "D"
+    },
+    {
+        "file": "L:\\01_Projects\\BN828\\02_Appended_Hull\\revD\\T3700\\Results\\Output.csv",
+        "geometry": "BN828",
+        "revision": "D"
+    },
+    {
+        "file": "L:\\01_Projects\\BN828\\03_Trim_wedge\\expired\\TW00\\Results\\Output.csv",
+        "geometry": "BN828",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\BN829\\01_Bare_Hull\\revF\\Input\\Output.csv",
+        "geometry": "BN829",
+        "revision": "F"
+    },
+    {
+        "file": "L:\\01_Projects\\BN829\\02_Appended_Hull\\revF\\T3750\\Results\\Output.csv",
+        "geometry": "BN829",
+        "revision": "F"
+    },
+    {
+        "file": "L:\\01_Projects\\BN829\\02_Appended_Hull\\revH\\no_BK\\Output.csv",
+        "geometry": "BN829",
+        "revision": "H"
+    },
+    {
+        "file": "L:\\01_Projects\\BN829\\02_Appended_Hull\\revH\\T3580\\Results\\Output_.csv",
+        "geometry": "BN829",
+        "revision": "H"
+    },
+    {
+        "file": "L:\\01_Projects\\BN829\\02_Appended_Hull\\revH\\T3750\\Results\\Output.csv",
+        "geometry": "BN829",
+        "revision": "H"
+    },
+    {
+        "file": "L:\\01_Projects\\BN830\\01_Bare_Hull\\revB\\Results\\Output.csv",
+        "geometry": "BN830",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\BN830\\01_Bare_Hull\\revC\\Results\\Output.csv",
+        "geometry": "BN830",
+        "revision": "C"
+    },
+    {
+        "file": "L:\\01_Projects\\BN830\\01_Bare_Hull\\revD\\Results\\Output.csv",
+        "geometry": "BN830",
+        "revision": "D"
+    },
+    {
+        "file": "L:\\01_Projects\\BN830\\02_Appended_Hull\\revA\\T3390\\Results\\Output.csv",
+        "geometry": "BN830",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\BN830\\02_Appended_Hull\\revA\\T3580\\Results\\Output.csv",
+        "geometry": "BN830",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3266\\00_IDE\\05_Validation\\Design_144\\Input\\Output.csv",
+        "geometry": "DN3266",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3266\\01_Bare_Hull\\revD\\01_Without_Bulb\\Input\\Output.csv",
+        "geometry": "DN3266",
+        "revision": "D"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3360\\01_Bare_Hull\\revA\\Results\\Output_.csv",
+        "geometry": "DN3360",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3365\\01_Bare_Hull\\expired\\Results\\Output.csv",
+        "geometry": "DN3365",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3365\\01_Bare_Hull\\revC\\T5580\\Results\\Output_.csv",
+        "geometry": "DN3365",
+        "revision": "C"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3365\\01_Bare_Hull\\revE\\Full_Load\\Results\\Output.csv",
+        "geometry": "DN3365",
+        "revision": "E"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3365\\01_Bare_Hull\\revE\\Sea-Trial\\Result\\Output.csv",
+        "geometry": "DN3365",
+        "revision": "E"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3365\\01_Bare_Hull\\revG\\Results\\Output.csv",
+        "geometry": "DN3365",
+        "revision": "G"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3365\\02_Appended_Hull\\revABB\\Results\\Output.csv",
+        "geometry": "DN3365",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3365\\bulb_study\\01_revB_Optimization\\Results\\Output.csv",
+        "geometry": "DN3365",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3411\\revB\\Results\\Output.csv",
+        "geometry": "DN3411",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3415\\01_Bare_hull\\revA\\Input\\Output.csv",
+        "geometry": "DN3415",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3415\\01_Bare_hull\\revA_Jarkko\\Results\\Output.csv",
+        "geometry": "DN3415",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3415\\01_Bare_hull\\revI_Marin\\Results\\Output.csv",
+        "geometry": "DN3415",
+        "revision": "I"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3415\\01_Bare_hull\\revJ\\Results\\Output.csv",
+        "geometry": "DN3415",
+        "revision": "J"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3415\\01_Bare_hull\\revK\\Results\\Output.csv",
+        "geometry": "DN3415",
+        "revision": "K"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3415\\01_Bare_hull\\revL\\Results\\Output.csv",
+        "geometry": "DN3415",
+        "revision": "L"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3415\\01_Bare_hull\\revO\\Input\\Output.csv",
+        "geometry": "DN3415",
+        "revision": "O"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3415\\07_Resistance_Check\\Jarkko\\Results\\Output.csv",
+        "geometry": "DN3415",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3507\\revA\\T2140\\Results\\Output.csv",
+        "geometry": "DN3507",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3513\\01_Bare_Hull\\revA\\Results\\Output.csv",
+        "geometry": "DN3513",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3513\\01_Bare_Hull\\revB\\Results\\Output.csv",
+        "geometry": "DN3513",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3523\\01_Bare_Hull\\revA\\Results\\Output_.csv",
+        "geometry": "DN3523",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3523\\01_Bare_Hull\\revB\\Results\\Output_.csv",
+        "geometry": "DN3523",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3554\\01_BareHull\\rev0\\Results\\Output.csv",
+        "geometry": "DN3554",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3554\\01_BareHull\\revA\\Results\\Output.csv",
+        "geometry": "DN3554",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3561\\01_Bare_Hull\\revB\\Results\\Output.csv",
+        "geometry": "DN3561",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3562\\01_Bare_Hull\\revB\\Results\\Output.csv",
+        "geometry": "DN3562",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3562\\01_Bare_Hull\\revE\\Results\\Output_.csv",
+        "geometry": "DN3562",
+        "revision": "E"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3569\\revA\\Results\\Output.csv",
+        "geometry": "DN3569",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3575\\01_Bare_Hull\\revA\\Results\\Output.csv",
+        "geometry": "DN3575",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3575\\01_Bare_Hull\\revA\\Results_f1\\Output.csv",
+        "geometry": "DN3575",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3578\\rev0\\Results\\Output_.csv",
+        "geometry": "DN3578",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3578\\revE\\Results\\Output.csv",
+        "geometry": "DN3578",
+        "revision": "E"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3578\\TS\\revD\\Results\\Output.csv",
+        "geometry": "DN3578",
+        "revision": "D"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3586\\01_Bare_Hull\\rev0\\Results\\Output_.csv",
+        "geometry": "DN3586",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3586\\01_Bare_Hull\\revB\\Results\\Output.csv",
+        "geometry": "DN3586",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3586\\02_Appended_Hull\\Results\\Output.csv",
+        "geometry": "DN3586",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3587\\01_Bare_Hull\\rev0\\Results\\Output.csv",
+        "geometry": "DN3587",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3587\\01_Bare_Hull\\revB\\Results\\Output.csv",
+        "geometry": "DN3587",
+        "revision": "B"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3593\\02_AppendedHull\\revA\\Results\\Output.csv",
+        "geometry": "DN3593",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3611\\01_Bare_Hull\\Results\\Output.csv",
+        "geometry": "DN3611",
+        "revision": "-"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\DN3616\\01_Bare_Hull\\revA_rev2\\Results\\expired\\Output.csv",
+        "geometry": "DN3616",
+        "revision": "A"
+    },
+    {
+        "file": "L:\\01_Projects\\Design Numbers\\FC23\\01_Bare_Hull\\revA\\Results\\Output.csv",
+        "geometry": "Results",
+        "revision": "A"
+    }
+]
