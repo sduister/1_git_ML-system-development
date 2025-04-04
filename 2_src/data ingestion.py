@@ -26,13 +26,10 @@ BN_DIRECTORIES = get_bn_directories(BASE_PROJECT_PATH)
 # The code will scan all BN directories and the Design Numbers folder
 INCLUDE_PATHS = BN_DIRECTORIES + [DESIGN_NUMBERS_PATH]
 
-# Pattern to extract revision letter (e.g., revB)
-revision_pattern = re.compile(r'rev\s*([A-Z])', re.IGNORECASE)
-
 def find_output_csv_files():
     """
     Scans through INCLUDE_PATHS for output.csv files.
-    Returns a list of tuples: (full_file_path, geometry_id, revision_letter)
+    Returns a list of tuples: (full_file_path, geometry_id, revision_hint)
     """
     output_files = []
     found_drafts = {}
@@ -43,14 +40,6 @@ def find_output_csv_files():
             continue
         
         for root, dirs, files in os.walk(base_path):
-            revision_from_path = "-"
-            # Extract revision info from any folder in the path
-            for folder in root.split(os.sep):
-                match = revision_pattern.search(folder)
-                if match:
-                    revision_from_path = match.group(1).upper()
-                    break
-            
             for file in files:
                 if re.fullmatch(r'output_?\.csv', file, re.IGNORECASE):
                     full_path = os.path.join(root, file)
@@ -73,11 +62,14 @@ def find_output_csv_files():
                     except ValueError:
                         continue
                     
-                    if revision_from_path not in found_drafts:
-                        found_drafts[revision_from_path] = set()
+                    # Use the immediate parent folder name as the revision hint
+                    revision_hint = os.path.basename(os.path.dirname(full_path))
                     
-                    if draft not in found_drafts[revision_from_path]:
-                        found_drafts[revision_from_path].add(draft)
+                    if revision_hint not in found_drafts:
+                        found_drafts[revision_hint] = set()
+                    
+                    if draft not in found_drafts[revision_hint]:
+                        found_drafts[revision_hint].add(draft)
                         
                         # Extract geometry id from the full_path by searching for BNxxxx or DNxxxx
                         geometry_id = None
@@ -88,11 +80,11 @@ def find_output_csv_files():
                         elif dn_match:
                             geometry_id = dn_match.group(1).upper()
                         else:
-                            # Fallback: use the immediate parent folder's name
+                            # Fallback: use the immediate parent folder's name (though usually revision_hint)
                             geometry_id = os.path.basename(os.path.dirname(full_path))
                         
-                        output_files.append((full_path, geometry_id, revision_from_path))
-                        print(f"✅ Found OUTPUT.csv for geometry {geometry_id} Rev{revision_from_path} with draft {draft_value}")
+                        output_files.append((full_path, geometry_id, revision_hint))
+                        print(f"✅ Found OUTPUT.csv for geometry {geometry_id} Revision: {revision_hint} with draft {draft_value}")
     
     return output_files
 
@@ -100,17 +92,7 @@ def is_bare_hull(first_line):
     """Simple check to see if the first line indicates a bare hull file."""
     return "BH" in first_line
 
-def extract_revision_from_lines(lines, fallback="-"):
-    """Extracts revision information from the lines of the CSV file."""
-    for line in lines:
-        if line.lower().startswith("rev"):
-            match = revision_pattern.search(line)
-            if match:
-                return f"Rev{match.group(1).upper()}"
-            break
-    return f"Rev{fallback}" if fallback != "-" else "Rev-"
-
-def parse_output_csv(file_path, geometry_id, revision_hint="-"):
+def parse_output_csv(file_path, geometry_id, revision_hint):
     """
     Parses an output CSV file and returns a DataFrame with the hydrostatic and CFD data.
     Adds the geometry, revision, and source file columns.
@@ -122,7 +104,8 @@ def parse_output_csv(file_path, geometry_id, revision_hint="-"):
         if not lines or not is_bare_hull(lines[0]):
             return pd.DataFrame()
         
-        revision_label = extract_revision_from_lines(lines, fallback=revision_hint)
+        # Instead of extracting revision from the CSV, use the revision hint directly.
+        revision_label = revision_hint
         
         hydrostatic_data = {}
         for line in lines:
@@ -183,8 +166,8 @@ def build_sort_key(geometry):
     return int(match.group()) if match else float('inf')
 
 def revision_sort_key(rev_str):
-    match = re.match(r"Rev([A-Z])", rev_str, re.IGNORECASE)
-    return ord(match.group(1).upper()) if match else float('inf')
+    # Here we simply use the revision string as-is for sorting (if desired, adjust sorting logic)
+    return rev_str
 
 def clean_combined_df(df):
     """
@@ -287,7 +270,7 @@ if __name__ == "__main__":
             "length_waterline": "Lwl [m]",
             "lcg": "LCG [m]",
             "vcg": "VCG [m]",
-            "displacement": "disp [m³]",
+            "displacement": "disp [m3]",
             "source_file": "source_file"
         }
         combined_df.rename(columns=COLUMN_RENAME_MAP, inplace=True)
@@ -328,5 +311,11 @@ if __name__ == "__main__":
         print(f" - Invalid Geometry: {deletion_info.get('Invalid Geometry', 0)} rows removed (geometry not matching BNxxxx or DNxxxx).")
         print(f" - Duplicate DN Lwl: {deletion_info.get('Duplicate DN Lwl', 0)} DN rows removed (Lwl [m] already present in a BN row).")
         print(f" - Total Deleted: {deletion_info.get('Total Deleted', 0)} rows removed in total.")
+        
+        # --- Print Unique Geometry Names and Revisions in Cleaned Data ---
+        # unique_geometries = cleaned_df[['geometry', 'rev']].drop_duplicates()
+        # print("\n📌 Geometries and Revisions included in cleaned data:")
+        # for geom, rev in unique_geometries.values:
+        #     print(f" - {geom} {rev}")
     else:
         print("❌ No usable CFD data found across selected builds and design numbers.")
