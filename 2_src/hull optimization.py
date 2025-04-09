@@ -1,20 +1,26 @@
+import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, r2_score
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score, mean_absolute_percentage_error
+from torch.utils.data import DataLoader, TensorDataset
+from tqdm import tqdm
 
 # ========================================
 # ⚙️ Configuration
 # ========================================
-NUM_ELLIPSES = 1000
-NUM_POINTS = 100
+NUM_ELLIPSES = 500
+NUM_POINTS = 30
 LATENT_DIM = 2
-EPOCHS = 300
+EPOCHS = 100
 A_MIN, A_MAX = 0.5, 3.0
 B_MIN, B_MAX = 0.5, 3.0
+INPUT_DIM = 2 * (NUM_POINTS + 1)
 
 # ========================================
 # 📏 Geometry calculation
@@ -26,14 +32,13 @@ def compute_geometry(points):
     return area, perimeter
 
 # ========================================
-# 📦 1. DATA GENERATION
+# 📦 Data generation
 # ========================================
 def generate_ellipse(a, b, num_points):
     theta = np.linspace(0, 2 * np.pi, num_points, endpoint=False)
     x = a * np.cos(theta)
     y = b * np.sin(theta)
-    points = np.stack([x, y], axis=1)
-    return np.vstack([points, points[0]])
+    return np.vstack([np.stack([x, y], axis=1), [a * 1, 0]])
 
 def generate_dataset(n, num_points, a_range, b_range):
     ellipses, targets = [], []
@@ -49,112 +54,158 @@ def generate_dataset(n, num_points, a_range, b_range):
 ellipses, targets = generate_dataset(NUM_ELLIPSES, NUM_POINTS, (A_MIN, A_MAX), (B_MIN, B_MAX))
 
 # ========================================
-# 📊 Plot overlay of all ellipses
+# 📐 Plot Original Ellipses (Overlay)
 # ========================================
-plt.figure(figsize=(6, 6))
+plt.figure(figsize=(8, 8))
 for shape in ellipses:
-    plt.plot(shape[:, 0], shape[:, 1], alpha=0.3)
+    plt.plot(shape[:, 0], shape[:, 1], alpha=0.6)
 plt.gca().set_aspect("equal")
-plt.title(f"Overlay of {NUM_ELLIPSES} Training Ellipses")
-plt.xlabel("Y")
-plt.ylabel("Z")
 plt.grid(True)
-plt.tight_layout()
+plt.xlabel("X")
+plt.ylabel("Y")
+plt.title("Overlay of Random Ellipses")
 plt.show()
 
 # ========================================
-# 🧼 Preprocessing
+# 🧼 Normalize
 # ========================================
 ellipses_normalized = ellipses.copy()
-ellipses_normalized[:, :, 0] /= A_MAX
-ellipses_normalized[:, :, 1] /= B_MAX
-flattened = ellipses_normalized.reshape(NUM_ELLIPSES, -1)
+ellipses_normalized[:, :, 0] = (ellipses[:, :, 0] + A_MAX) / (2 * A_MAX)
+ellipses_normalized[:, :, 1] = (ellipses[:, :, 1] + B_MAX) / (2 * B_MAX)
+X = ellipses_normalized.reshape(NUM_ELLIPSES, -1)
+X_tensor = torch.tensor(X, dtype=torch.float32)
 
 # ========================================
-# 🧠 2. AUTOENCODER
+# 🧠 Autoencoder: Search Space, Model, Training
 # ========================================
-class Encoder(nn.Module):
-    def __init__(self, input_dim, latent_dim):
-        super().__init__()
-        self.model = nn.Sequential(
-            nn.Linear(input_dim, 128), nn.ReLU(),
-            nn.Linear(128, latent_dim)
-        )
-    def forward(self, x): return self.model(x)
 
-class Decoder(nn.Module):
-    def __init__(self, latent_dim, output_dim):
-        super().__init__()
-        self.model = nn.Sequential(
-            nn.Linear(latent_dim, 128), nn.ReLU(),
-            nn.Linear(128, output_dim)
-        )
-    def forward(self, z): return self.model(z)
+# 🔧 Hyperparameter Search Space
+hidden_sizes = [32, 64]
+num_layers_list = [1, 2]
+activation_funcs = {
+    "relu": nn.ReLU,
+    "leaky_relu": nn.LeakyReLU,
+    "tanh": nn.Tanh
+}
+param_grid = list(itertools.product(hidden_sizes, num_layers_list, activation_funcs.items()))
 
-X = torch.tensor(flattened, dtype=torch.float32)
-encoder = Encoder(X.shape[1], LATENT_DIM)
-decoder = Decoder(LATENT_DIM, X.shape[1])
-model = nn.Sequential(encoder, decoder)
-optimizer = optim.Adam(model.parameters(), lr=1e-3)
-loss_fn = nn.MSELoss()
+# 🧠 Autoencoder Definition
+def build_autoencoder(input_dim, latent_dim, layer_size, num_layers, activation_fn):
+    def layer(in_dim, out_dim): return [nn.Linear(in_dim, out_dim), activation_fn()]
+    enc, dec = [], []
+    in_dim = input_dim
+    for _ in range(num_layers):
+        enc += layer(in_dim, layer_size)
+        in_dim = layer_size
+    enc.append(nn.Linear(layer_size, latent_dim))
+    in_dim = latent_dim
+    for _ in range(num_layers):
+        dec += layer(in_dim, layer_size)
+        in_dim = layer_size
+    dec.append(nn.Linear(layer_size, input_dim))
+    return nn.Sequential(*enc), nn.Sequential(*dec)
 
-loss_history = []
-for epoch in range(EPOCHS):
-    model.train()
-    optimizer.zero_grad()
-    output = model(X)
-    loss = loss_fn(output, X)
-    loss.backward()
-    optimizer.step()
-    loss_history.append(loss.item())
+# 🔍 Train-Test Split
+X_train, X_val, y_train, y_val = train_test_split(X, targets, test_size=0.2, random_state=42)
+X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
+X_val_tensor = torch.tensor(X_val, dtype=torch.float32)
 
-# ========================================
-# 📉 Plot loss over epochs
-# ========================================
+train_loader = DataLoader(TensorDataset(X_train_tensor), batch_size=32, shuffle=True)
+val_loader = DataLoader(TensorDataset(X_val_tensor), batch_size=32, shuffle=False)
+
+# 🧪 Grid Search Training
+best_val_loss = float("inf")
+best_model = None
+best_encoder = None
+best_decoder = None
+best_config = None
+best_train_loss_hist = []
+best_val_loss_hist = []
+
+for hidden_size, num_layers, (act_name, act_fn) in param_grid:
+    encoder, decoder = build_autoencoder(INPUT_DIM, LATENT_DIM, hidden_size, num_layers, act_fn)
+    model = nn.Sequential(encoder, decoder)
+    optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-5)
+    loss_fn = nn.MSELoss()
+
+    train_loss_history = []
+    val_loss_history = []
+
+    for epoch in range(EPOCHS):
+        model.train()
+        train_loss = 0.0
+        for xb in train_loader:
+            optimizer.zero_grad()
+            loss = loss_fn(model(xb[0]), xb[0])
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item() * xb[0].size(0)
+        train_loss /= len(train_loader.dataset)
+        train_loss_history.append(train_loss)
+
+        model.eval()
+        val_loss = 0.0
+        with torch.no_grad():
+            for xb in val_loader:
+                loss = loss_fn(model(xb[0]), xb[0])
+                val_loss += loss.item() * xb[0].size(0)
+        val_loss /= len(val_loader.dataset)
+        val_loss_history.append(val_loss)
+
+    if val_loss_history[-1] < best_val_loss:
+        best_val_loss = val_loss_history[-1]
+        best_model = model
+        best_encoder = encoder
+        best_decoder = decoder
+        best_config = (hidden_size, num_layers, act_name)
+        best_train_loss_hist = train_loss_history
+        best_val_loss_hist = val_loss_history
+
+print(f"Best config: hidden_size={best_config[0]}, num_layers={best_config[1]}, activation={best_config[2]}")
+print(f"Best validation loss: {best_val_loss:.6f}")
+
+# 📉 Plot Autoencoder Loss
 plt.figure(figsize=(6, 4))
-plt.plot(loss_history, label="Reconstruction Loss")
+plt.plot(best_train_loss_hist, label="Train Loss")
+plt.plot(best_val_loss_hist, label="Validation Loss")
 plt.xlabel("Epoch")
 plt.ylabel("MSE Loss")
-plt.title("Autoencoder Loss Over Epochs")
+plt.title("Autoencoder Training")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
 plt.show()
 
 # ========================================
-# 🌲 3. SURROGATE MODEL
+# 🌲 Surrogate Model (Random Forest)
 # ========================================
 with torch.no_grad():
-    Z = encoder(X).cpu().numpy()
+    Z = best_encoder(X_train_tensor).cpu().numpy()
+
+scaler_z = MinMaxScaler(feature_range=(-1, 1))
+Z_scaled = scaler_z.fit_transform(Z)
+scaler_y = StandardScaler()
+y_train_scaled = scaler_y.fit_transform(y_train)
 
 rf = RandomForestRegressor(n_estimators=100, random_state=42)
-rf.fit(Z, targets)
-pred_targets = rf.predict(Z)
+rf.fit(Z_scaled, y_train_scaled)
+pred_scaled = rf.predict(Z_scaled)
+pred = scaler_y.inverse_transform(pred_scaled)
 
 # ========================================
-# 📊 4. EVALUATION
+# 📊 Surrogate scatter plots with metrics
 # ========================================
-true_area = targets[:, 0]
-true_peri = targets[:, 1]
-pred_area = pred_targets[:, 0]
-pred_peri = pred_targets[:, 1]
+true_area, true_peri = y_train[:, 0], y_train[:, 1]
+pred_area, pred_peri = pred[:, 0], pred[:, 1]
 
-def eval_metrics(true, pred):
-    return {
-        "MAPE": mean_absolute_percentage_error(true, pred),
-        "MSE": mean_squared_error(true, pred),
-        "R²": r2_score(true, pred)
-    }
-
-# ========================================
-# 📈 5. PLOTS: True vs Predicted
-# ========================================
-metrics_area = eval_metrics(true_area, pred_area)
-metrics_peri = eval_metrics(true_peri, pred_peri)
+# Metrics
+r2_area = r2_score(true_area, pred_area)
+r2_peri = r2_score(true_peri, pred_peri)
+mape_area = mean_absolute_percentage_error(true_area, pred_area) * 100
+mape_peri = mean_absolute_percentage_error(true_peri, pred_peri) * 100
 
 plt.figure(figsize=(12, 5))
 
-# Area
 plt.subplot(1, 2, 1)
 plt.scatter(true_area, pred_area, alpha=0.6)
 plt.plot([min(true_area), max(true_area)], [min(true_area), max(true_area)], 'r--')
@@ -162,15 +213,12 @@ plt.xlabel("True Area")
 plt.ylabel("Predicted Area")
 plt.title("Area: True vs Predicted")
 plt.grid(True)
-metrics_text_area = (
-    f"MAPE: {metrics_area['MAPE']:.4f}%\n"
-    f"MSE: {metrics_area['MSE']:.4f}\n"
-    f"R²: {metrics_area['R²']:.4f}"
-)
-plt.gca().text(0.7, 0.05, metrics_text_area, transform=plt.gca().transAxes,
-               fontsize=10, bbox=dict(facecolor='white', alpha=0.7))
+plt.text(0.98, 0.02,
+         f"$R^2$: {r2_area:.3f}\nMAPE: {mape_area:.2f}%",
+         transform=plt.gca().transAxes,
+         fontsize=10, ha='right', va='bottom',
+         bbox=dict(facecolor='white', edgecolor='gray', boxstyle='round,pad=0.4'))
 
-# Perimeter
 plt.subplot(1, 2, 2)
 plt.scatter(true_peri, pred_peri, alpha=0.6)
 plt.plot([min(true_peri), max(true_peri)], [min(true_peri), max(true_peri)], 'r--')
@@ -178,13 +226,64 @@ plt.xlabel("True Perimeter")
 plt.ylabel("Predicted Perimeter")
 plt.title("Perimeter: True vs Predicted")
 plt.grid(True)
-metrics_text_peri = (
-    f"MAPE: {metrics_peri['MAPE']:.4f} %\n"
-    f"MSE: {metrics_peri['MSE']:.4f}\n"
-    f"R²: {metrics_peri['R²']:.4f}"
-)
-plt.gca().text(0.7, 0.05, metrics_text_peri, transform=plt.gca().transAxes,
-               fontsize=10, bbox=dict(facecolor='white', alpha=0.7))
+plt.text(0.98, 0.02,
+         f"$R^2$: {r2_peri:.3f}\nMAPE: {mape_peri:.2f}%",
+         transform=plt.gca().transAxes,
+         fontsize=10, ha='right', va='bottom',
+         bbox=dict(facecolor='white', edgecolor='gray', boxstyle='round,pad=0.4'))
 
+plt.tight_layout()
+plt.show()
+
+# ========================================
+# 🔍 Visualize Latent Space (Z1 vs Z2 with 0-centered axes)
+# ========================================
+plt.figure(figsize=(6, 6))
+scatter = plt.scatter(Z_scaled[:, 0], Z_scaled[:, 1], c=true_area, cmap='viridis', alpha=0.8)
+plt.axhline(0, color='gray', linewidth=1)
+plt.axvline(0, color='gray', linewidth=1)
+
+# Sample 20 random latent vectors between min/max of Z_scaled
+z_min, z_max = Z_scaled.min(axis=0), Z_scaled.max(axis=0)
+random_latent_vectors = np.random.uniform(low=z_min, high=z_max, size=(20, LATENT_DIM))
+
+# DENORMALIZE BEFORE DECODING
+latent_vectors_denorm = scaler_z.inverse_transform(random_latent_vectors)
+
+# Plot them in latent space
+plt.scatter(random_latent_vectors[:, 0], random_latent_vectors[:, 1],
+            color='red', label='Random Samples', edgecolor='black', s=50)
+
+# Annotate each sample with its number
+for i, (x, y) in enumerate(random_latent_vectors):
+    plt.text(x + 0.015, y + 0.015, str(i + 1), fontsize=9, color='black')
+
+plt.xlabel("Latent Z1")
+plt.ylabel("Latent Z2")
+plt.title("Latent Space Colored by Area")
+plt.colorbar(scatter, label="Area")
+plt.legend()
+plt.grid(True)
+plt.gca().set_aspect("equal")
+plt.tight_layout()
+plt.show()
+
+# ========================================
+# 🎯 Decode all 20 visualized latent vectors
+# ========================================
+plt.figure(figsize=(12, 6))
+for i, z in enumerate(latent_vectors_denorm):
+    z_tensor = torch.tensor(z, dtype=torch.float32).unsqueeze(0)
+    decoded = best_decoder(z_tensor).detach().numpy().reshape(NUM_POINTS + 1, 2)
+    decoded[:, 0] = (decoded[:, 0] * 2 * A_MAX) - A_MAX
+    decoded[:, 1] = (decoded[:, 1] * 2 * B_MAX) - B_MAX
+
+    plt.subplot(4, 5, i + 1)
+    plt.plot(decoded[:, 0], decoded[:, 1], color='green')
+    plt.gca().set_aspect("equal")
+    plt.title(f"#{i+1}")
+    plt.axis('off')
+
+plt.suptitle("Decoded Ellipses from 20 Random Latent Samples", fontsize=16)
 plt.tight_layout()
 plt.show()
