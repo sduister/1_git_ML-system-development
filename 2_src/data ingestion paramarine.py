@@ -1,38 +1,52 @@
-import os
+import subprocess
+import socket
+import time
 
-def generate_kcl_import_bn711():
-    # Stap 1: Pad naar specifieke revisie map "Rev I"
-    base_folder = r"C:\Users\sietse.duister\OneDrive - De Voogt Naval Architects\00_specialists group\1_projects\2_ML system development\2_parasolids\BN711\Rev I"
-    output_folder = r"C:\Users\sietse.duister\OneDrive - De Voogt Naval Architects\00_specialists group\1_projects\2_ML system development\1_git_ML system development\2_src"
-    romp_naam = "BN711"
+# === CONFIGURATION ===
+PARAMARINE_PATH = r"C:\Program Files\QinetiQ\Paramarine V24.1\bin\Paramarine.exe"
+PORT = 5000
+HOST = "127.0.0.1"
 
-    # Stap 2: Zoek naar eerste .x_t bestand
-    parasolid_file = None
-    for file in os.listdir(base_folder):
-        if file.lower().endswith(".x_t"):
-            parasolid_file = os.path.join(base_folder, file)
-            break
+# === FUNCTION TO START PARAMARINE ===
+def start_paramarine():
+    cmd = f'"{PARAMARINE_PATH}" /port:{PORT}'
+    print(f"▶️ Launching Paramarine with:\n{cmd}")
+    subprocess.Popen(cmd, shell=True)
+    print("⏳ Waiting for Paramarine to initialize...")
 
-    if not parasolid_file:
-        print("❌ Geen .x_t bestand gevonden in Rev I map.")
-        return None
+# === FUNCTION TO WAIT FOR SOCKET TO BE READY ===
+def wait_for_paramarine(timeout=30):
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            with socket.create_connection((HOST, PORT), timeout=2):
+                print("✅ Paramarine socket is ready.")
+                return
+        except (ConnectionRefusedError, socket.timeout):
+            time.sleep(1)
+    raise RuntimeError("❌ Timeout: Paramarine socket never became available.")
 
-    # Stap 3: Output .design pad
-    output_design = os.path.join(output_folder, f"{romp_naam}_met_hull.design")
+# === FUNCTION TO SEND A SINGLE KCL COMMAND ===
+def send_kcl(command: str):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((HOST, PORT))
+        s.sendall((command + "\n").encode("utf-8"))  # use newline (LF)
+        response = s.recv(4096).decode("utf-8")
+        print(f">>> {command}")
+        print(f"<<< {response}")
+        return response
 
-    # Stap 4: Genereer KCL-inhoud
-    kcl_content = f"""
-ImportParasolid "{parasolid_file}" As "ImportedHalfHull"
-SaveDesignAs "{output_design}"
-"""
+# === SAFETY TEST: SEND A BASIC COMMAND ===
+def open_design_only():
+    start_paramarine()
+    wait_for_paramarine()
 
-    # Stap 5: Schrijf het KCL-bestand weg
-    kcl_path = os.path.join(output_folder, f"import_{romp_naam}.kcl")
-    with open(kcl_path, "w") as f:
-        f.write(kcl_content.strip())
+    print("🕒 Waiting extra time after socket becomes available...")
+    time.sleep(10)  # Allow full GUI/init to complete
 
-    print(f"✅ Parasolid bestand gevonden: {parasolid_file}")
-    print(f"✅ KCL-script opgeslagen naar: {kcl_path}")
-    return kcl_path
+    # Send a simple KCL command that should never crash
+    send_kcl("get_number_selected_objects")
 
-generate_kcl_import_bn711()
+# === RUN ===
+if __name__ == "__main__":
+    open_design_only()
