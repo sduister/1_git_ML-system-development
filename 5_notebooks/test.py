@@ -1,245 +1,316 @@
+import itertools
 import numpy as np
-import trimesh
-from OCC.Core.STEPControl import STEPControl_Reader
-from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh
-from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakeBox
-from OCC.Core.BRepAlgoAPI import BRepAlgoAPI_Common
-from OCC.Core.Bnd import Bnd_Box
-from OCC.Core.BRepBndLib import brepbndlib_Add
-from OCC.Core.TopExp import TopExp_Explorer
-from OCC.Core.TopAbs import TopAbs_FACE
-from OCC.Core.BRep import BRep_Tool
-from OCC.Core.gp import gp_Pnt
 import matplotlib.pyplot as plt
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score, mean_absolute_percentage_error
+from torch.utils.data import DataLoader, TensorDataset
+from tqdm import tqdm
 
+# ========================================
+# ⚙️ Configuration
+# ========================================
+NUM_ELLIPSES = 1000
+NUM_POINTS = 30
+LATENT_DIM = 2
+EPOCHS = 100
+A_MIN, A_MAX = 0.5, 3.0
+B_MIN, B_MAX = 0.5, 3.0
+INPUT_DIM = 2 * (NUM_POINTS + 1)
 
-def read_step_file(path):
-    reader = STEPControl_Reader()
-    reader.ReadFile(path)
-    reader.TransferRoots()
-    return reader.OneShape()
+# ========================================
+# 📏 Geometry calculation
+# ========================================
+def compute_geometry(points):
+    y, z = points[:, 0], points[:, 1]
+    area = 0.5 * np.abs(np.dot(y, np.roll(z, -1)) - np.dot(z, np.roll(y, -1)))
+    perimeter = np.sum(np.sqrt(np.sum(np.diff(points, axis=0, append=[points[0]])**2, axis=1)))
+    return area, perimeter
 
+# ========================================
+# 📦 Data generation
+# ========================================
+def generate_ellipse(a, b, num_points):
+    theta = np.linspace(0, 2 * np.pi, num_points, endpoint=False)
+    x = a * np.cos(theta)
+    y = b * np.sin(theta)
+    return np.vstack([np.stack([x, y], axis=1), [a * 1, 0]])
 
-def get_bounding_box(shape):
-    bbox = Bnd_Box()
-    brepbndlib_Add(shape, bbox)
-    return bbox.Get()
+def generate_dataset(n, num_points, a_range, b_range):
+    ellipses, targets = [], []
+    for _ in range(n):
+        a = np.random.uniform(*a_range)
+        b = np.random.uniform(*b_range)
+        shape = generate_ellipse(a, b, num_points)
+        area, perimeter = compute_geometry(shape)
+        ellipses.append(shape)
+        targets.append([area, perimeter])
+    return np.array(ellipses), np.array(targets)
 
+ellipses, targets = generate_dataset(NUM_ELLIPSES, NUM_POINTS, (A_MIN, A_MAX), (B_MIN, B_MAX))
 
-def clip_underwater_brep(shape, draught):
-    xmin, ymin, zmin, xmax, ymax, zmax = get_bounding_box(shape)
-    print(f"📦 Bounding box Z = ({zmin:.2f}, {zmax:.2f})")
-    p1 = gp_Pnt(xmin - 1, ymin - 1, zmin - 1)
-    p2 = gp_Pnt(xmax + 1, ymax + 1, draught + 1.0)
-    return BRepAlgoAPI_Common(shape, BRepPrimAPI_MakeBox(p1, p2).Shape()).Shape()
+# ========================================
+# 📐 Plot Original Ellipses (Overlay)
+# ========================================
+plt.figure(figsize=(8, 8))
+for shape in ellipses:
+    plt.plot(shape[:, 0], shape[:, 1], alpha=0.6)
+plt.gca().set_aspect("equal")
+plt.grid(True)
+plt.xlabel("X")
+plt.ylabel("Y")
+plt.title("Overlay of Random Ellipses")
+plt.show()
 
+# ========================================
+# 🧼 Normalize
+# ========================================
+ellipses_normalized = ellipses.copy()
+ellipses_normalized[:, :, 0] = (ellipses[:, :, 0] + A_MAX) / (2 * A_MAX)
+ellipses_normalized[:, :, 1] = (ellipses[:, :, 1] + B_MAX) / (2 * B_MAX)
+X = ellipses_normalized.reshape(NUM_ELLIPSES, -1)
+X_tensor = torch.tensor(X, dtype=torch.float32)
 
-def brep_to_trimesh(shape):
-    BRepMesh_IncrementalMesh(shape, 0.5).Perform()
-    vertices, faces, vert_map, index = [], [], {}, 0
-    explorer = TopExp_Explorer(shape, TopAbs_FACE)
-    while explorer.More():
-        tri = BRep_Tool.Triangulation(explorer.Current(), explorer.Current().Location())
-        if tri:
-            nodes, tris = tri.Nodes(), tri.Triangles()
-            for i in range(1, tri.NbNodes() + 1):
-                p = nodes.Value(i)
-                key = (p.X(), p.Y(), p.Z())
-                if key not in vert_map:
-                    vert_map[key] = index
-                    vertices.append([p.X(), p.Y(), p.Z()])
-                    index += 1
-            for i in range(1, tri.NbTriangles() + 1):
-                t = tris.Value(i)
-                faces.append([
-                    vert_map[(nodes.Value(t.Value(1)).X(), nodes.Value(t.Value(1)).Y(), nodes.Value(t.Value(1)).Z())],
-                    vert_map[(nodes.Value(t.Value(2)).X(), nodes.Value(t.Value(2)).Y(), nodes.Value(t.Value(2)).Z())],
-                    vert_map[(nodes.Value(t.Value(3)).X(), nodes.Value(t.Value(3)).Y(), nodes.Value(t.Value(3)).Z())]
-                ])
-        explorer.Next()
-    mesh = trimesh.Trimesh(vertices=np.array(vertices), faces=np.array(faces), process=True)
-    mesh.apply_scale(0.001)
-    mesh.fix_normals()
-    return mesh
+# ========================================
+# 🧠 Autoencoder: Search Space, Model, Training
+# ========================================
 
+# 🔧 Hyperparameter Search Space
+hidden_sizes = [32, 64]
+num_layers_list = [1, 2]
+activation_funcs = {
+    "relu": nn.ReLU,
+    "leaky_relu": nn.LeakyReLU,
+    "tanh": nn.Tanh
+}
+param_grid = list(itertools.product(hidden_sizes, num_layers_list, activation_funcs.items()))
 
-def compute_waterplane_aft_point(mesh, draught):
-    section = mesh.section(plane_origin=[0, 0, draught], plane_normal=[0, 0, 1])
-    if section is None:
-        return None
-    try:
-        points = np.vstack(section.discrete)
-        idx = np.argmin(points[:, 0])
-        return points[idx]  # returns [x, y, z]
-    except Exception:
-        return None
+# 🧠 Autoencoder Definition
+def build_autoencoder(input_dim, latent_dim, layer_size, num_layers, activation_fn):
+    def layer(in_dim, out_dim): return [nn.Linear(in_dim, out_dim), activation_fn()]
+    enc, dec = [], []
+    in_dim = input_dim
+    for _ in range(num_layers):
+        enc += layer(in_dim, layer_size)
+        in_dim = layer_size
+    enc.append(nn.Linear(layer_size, latent_dim))
+    in_dim = latent_dim
+    for _ in range(num_layers):
+        dec += layer(in_dim, layer_size)
+        in_dim = layer_size
+    dec.append(nn.Linear(layer_size, input_dim))
+    return nn.Sequential(*enc), nn.Sequential(*dec)
 
+# 🔍 Train-Test Split
+X_train, X_val, y_train, y_val = train_test_split(X, targets, test_size=0.2, random_state=42)
+X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
+X_val_tensor = torch.tensor(X_val, dtype=torch.float32)
 
-def compute_cross_section_area(mesh, x_pos):
-    section = mesh.section(plane_origin=[x_pos, 0, 0], plane_normal=[1, 0, 0])
-    if section is None:
-        return 0.0
-    try:
-        lines = section.discrete
-        total_area = 0.0
-        for poly in lines:
-            if poly.shape[0] >= 3:
-                x, y = poly[:, 1], poly[:, 2]
-                total_area += 0.5 * np.abs(np.dot(x, np.roll(y, -1)) - np.dot(y, np.roll(x, -1)))
-        return total_area
-    except Exception:
-        return 0.0
+train_loader = DataLoader(TensorDataset(X_train_tensor), batch_size=32, shuffle=True)
+val_loader = DataLoader(TensorDataset(X_val_tensor), batch_size=32, shuffle=False)
 
+# 🧪 Grid Search Training
+best_val_loss = float("inf")
+best_model = None
+best_encoder = None
+best_decoder = None
+best_config = None
+best_train_loss_hist = []
+best_val_loss_hist = []
 
-def compute_waterplane_area_and_extent(mesh, draught):
-    section = mesh.section(plane_origin=[0, 0, draught], plane_normal=[0, 0, 1])
-    if section is None:
-        return 0.0, 0.0, 0.0
-    try:
-        lines = section.discrete
-        total_area = 0.0
-        all_points = []
-        for poly in lines:
-            if poly.shape[0] >= 3:
-                x, y = poly[:, 0], poly[:, 1]
-                total_area += 0.5 * np.abs(np.dot(x, np.roll(y, -1)) - np.dot(y, np.roll(x, -1)))
-                all_points.append(poly)
-        combined = np.vstack(all_points)
-        Lwl = combined[:, 0].ptp()
-        Bwl = combined[:, 1].ptp()
-        return total_area, Lwl, Bwl
-    except Exception:
-        return 0.0, 0.0, 0.0
+for hidden_size, num_layers, (act_name, act_fn) in param_grid:
+    encoder, decoder = build_autoencoder(INPUT_DIM, LATENT_DIM, hidden_size, num_layers, act_fn)
+    model = nn.Sequential(encoder, decoder)
+    optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-5)
+    loss_fn = nn.MSELoss()
 
+    train_loss_history = []
+    val_loss_history = []
 
-def compute_amax_at_max_beam(mesh, draught):
-    section = mesh.section(plane_origin=[0, 0, draught], plane_normal=[0, 0, 1])
-    if section is None:
-        return 0.0, None
-    try:
-        lines = section.discrete
-        combined = np.vstack(lines)
-        # Bin into X slices and find max Y extent
-        x_vals = combined[:, 0]
-        y_vals = combined[:, 1]
-        bins = np.linspace(np.min(x_vals), np.max(x_vals), 100)
-        max_span = 0
-        best_x = None
-        for i in range(len(bins) - 1):
-            xmask = (x_vals >= bins[i]) & (x_vals < bins[i + 1])
-            y_slice = y_vals[xmask]
-            if y_slice.size > 0:
-                span = np.ptp(y_slice)
-                if span > max_span:
-                    max_span = span
-                    best_x = 0.5 * (bins[i] + bins[i + 1])
-        if best_x is not None:
-            Amax = compute_cross_section_area(mesh, best_x)
-            return Amax, best_x
-        return 0.0, None
-    except Exception:
-        return 0.0, None
-    
+    for epoch in range(EPOCHS):
+        model.train()
+        train_loss = 0.0
+        for xb in train_loader:
+            optimizer.zero_grad()
+            loss = loss_fn(model(xb[0]), xb[0])
+            loss.backward()
+            optimizer.step()
+            train_loss += loss.item() * xb[0].size(0)
+        train_loss /= len(train_loader.dataset)
+        train_loss_history.append(train_loss)
 
-def compute_hydrostatics(mesh, draught, local_point):
-    volume = mesh.volume
-    bbox = mesh.bounds
-    LoS = bbox[1, 0] - bbox[0, 0]
-    B = bbox[1, 1] - bbox[0, 1]
-    T = draught * 0.001
+        model.eval()
+        val_loss = 0.0
+        with torch.no_grad():
+            for xb in val_loader:
+                loss = loss_fn(model(xb[0]), xb[0])
+                val_loss += loss.item() * xb[0].size(0)
+        val_loss /= len(val_loader.dataset)
+        val_loss_history.append(val_loss)
 
-    midship_x = bbox[0, 0] + 0.5 * LoS
-    A_mid = compute_cross_section_area(mesh, midship_x)
+    if val_loss_history[-1] < best_val_loss:
+        best_val_loss = val_loss_history[-1]
+        best_model = model
+        best_encoder = encoder
+        best_decoder = decoder
+        best_config = (hidden_size, num_layers, act_name)
+        best_train_loss_hist = train_loss_history
+        best_val_loss_hist = val_loss_history
 
-    Aw, Lwl, Bwl = compute_waterplane_area_and_extent(mesh, draught * 0.001)
-    wetted_surface = mesh.area - Aw
+print(f"Best config: hidden_size={best_config[0]}, num_layers={best_config[1]}, activation={best_config[2]}")
+print(f"Best validation loss: {best_val_loss:.6f}")
 
-    Amax, x_at_max_beam = compute_amax_at_max_beam(mesh, draught * 0.001)
-    Cp = volume / (Amax * Lwl) if Amax * Lwl > 0 else 0
+# 📉 Plot Autoencoder Loss
+plt.figure(figsize=(6, 4))
+plt.plot(best_train_loss_hist, label="Train Loss")
+plt.plot(best_val_loss_hist, label="Validation Loss")
+plt.xlabel("Epoch")
+plt.ylabel("MSE Loss")
+plt.title("Autoencoder Training")
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
 
-    Cb = volume / (Lwl * Bwl * T) if Lwl * Bwl * T > 0 else 0
-    Cm = A_mid / (B * T) if B * T > 0 else 0
-    Cwp = Aw / (Lwl * Bwl) if Lwl * Bwl > 0 else 0
+# ========================================
+# 🌲 Surrogate Model (Random Forest)
+# ========================================
+with torch.no_grad():
+    Z = best_encoder(X_train_tensor).cpu().numpy()
 
-    lcb_global = mesh.center_mass[0]
-    lcb_local = (lcb_global - local_point[0]) / Lwl * 100 if Lwl > 0 else 0
+scaler_z = MinMaxScaler(feature_range=(-1, 1))
+Z_scaled = scaler_z.fit_transform(Z)
+scaler_y = StandardScaler()
+y_train_scaled = scaler_y.fit_transform(y_train)
 
-    print("\n📊 Hydrostatics of underwaterbody:")
-    print(f"Length submerged (LoS):         {LoS:.3f} m")
-    print(f"Length waterline (Lwl):         {Lwl:.3f} m")
-    print(f"Beam at waterline (Bwl):        {Bwl:.3f} m")
-    print(f"Draught (T):                    {T:.3f} m")
-    print(f"Displacement (∇):               {volume:.3f} m³")
-    print(f"LCB from origin:                {lcb_global:.3f} m")
-    print(f"LCB from local point:           {lcb_local:.2f} %Lwl")
-    print(f"Waterplane Area (Aw):           {Aw:.3f} m²")
-    print(f"Wetted Surface Area (S):        {wetted_surface:.3f} m²")
-    print(f"Midship Area (Amid):            {A_mid:.3f} m²")
-    print(f"Max. Width Area (Amax):         {Amax:.3f} m² (X = {x_at_max_beam:.2f} m)")
-    print(f"Block Coefficient (Cb):         {Cb:.3f}")
-    print(f"Midship Coefficient (Cm):       {Cm:.3f}")
-    print(f"Waterplane Coefficient (Cwp):   {Cwp:.3f}")
-    print(f"Prismatic Coefficient (Cp):     {Cp:.3f}")
+rf = RandomForestRegressor(n_estimators=100, random_state=42)
+rf.fit(Z_scaled, y_train_scaled)
+pred_scaled = rf.predict(Z_scaled)
+pred = scaler_y.inverse_transform(pred_scaled)
 
+# ========================================
+# 📊 Surrogate scatter plots with metrics
+# ========================================
+true_area, true_peri = y_train[:, 0], y_train[:, 1]
+pred_area, pred_peri = pred[:, 0], pred[:, 1]
 
+# Metrics
+r2_area = r2_score(true_area, pred_area)
+r2_peri = r2_score(true_peri, pred_peri)
+mape_area = mean_absolute_percentage_error(true_area, pred_area) * 100
+mape_peri = mean_absolute_percentage_error(true_peri, pred_peri) * 100
 
-def plot_views(mesh, local_point):
-    points = mesh.vertices
-    fig, axs = plt.subplots(1, 2, figsize=(12, 4))
+plt.figure(figsize=(12, 5))
 
-    axs[0].scatter(points[:, 0], points[:, 1], s=0.5)
-    axs[0].scatter(0, 0, color='black', marker='x', label='Global origin')
-    if local_point is not None:
-        axs[0].scatter(local_point[0], local_point[1], color='red', marker='x', label='Local point')
-    axs[0].set_title("Top View (X-Y)")
-    axs[0].set_xlabel("X")
-    axs[0].set_ylabel("Y")
-    axs[0].axis("equal")
-    axs[0].grid(True)
-    axs[0].legend()
+plt.subplot(1, 2, 1)
+plt.scatter(true_area, pred_area, alpha=0.6)
+plt.plot([min(true_area), max(true_area)], [min(true_area), max(true_area)], 'r--')
+plt.xlabel("True Area")
+plt.ylabel("Predicted Area")
+plt.title("Area: True vs Predicted")
+plt.grid(True)
+plt.text(0.98, 0.02,
+         f"$R^2$: {r2_area:.3f}\nMAPE: {mape_area:.2f}%",
+         transform=plt.gca().transAxes,
+         fontsize=10, ha='right', va='bottom',
+         bbox=dict(facecolor='white', edgecolor='gray', boxstyle='round,pad=0.4'))
 
-    axs[1].scatter(points[:, 0], points[:, 2], s=0.5)
-    axs[1].scatter(0, 0, color='black', marker='x', label='Global origin')
-    if local_point is not None:
-        axs[1].scatter(local_point[0], local_point[2], color='red', marker='x', label='Local point')
-    axs[1].set_title("Side View (X-Z)")
-    axs[1].set_xlabel("X")
-    axs[1].set_ylabel("Z")
-    axs[1].axis("equal")
-    axs[1].grid(True)
-    axs[1].legend()
+plt.subplot(1, 2, 2)
+plt.scatter(true_peri, pred_peri, alpha=0.6)
+plt.plot([min(true_peri), max(true_peri)], [min(true_peri), max(true_peri)], 'r--')
+plt.xlabel("True Perimeter")
+plt.ylabel("Predicted Perimeter")
+plt.title("Perimeter: True vs Predicted")
+plt.grid(True)
+plt.text(0.98, 0.02,
+         f"$R^2$: {r2_peri:.3f}\nMAPE: {mape_peri:.2f}%",
+         transform=plt.gca().transAxes,
+         fontsize=10, ha='right', va='bottom',
+         bbox=dict(facecolor='white', edgecolor='gray', boxstyle='round,pad=0.4'))
 
-    plt.tight_layout()
-    plt.show()
+plt.tight_layout()
+plt.show()
 
+# ========================================
+# 🧱 Convex Hull Filtering Setup
+# ========================================
+from scipy.spatial import ConvexHull, Delaunay
+import cma
 
-def main():
-    from trimesh.scene import Scene
-    from trimesh.visual import ColorVisuals
+# Build convex hull from scaled latent vectors
+hull = ConvexHull(Z_scaled)
+delaunay = Delaunay(Z_scaled[hull.vertices])
+z_min, z_max = Z_scaled.min(axis=0), Z_scaled.max(axis=0)
 
-    step_file = r"C:\\Users\\sietse.duister\\OneDrive - De Voogt Naval Architects\\00_specialists group\\1_projects\\2_ML system development\\2_parasolids\\716-VRM-H-90-CASCO-CFD-28112022_x_t.stp"
-    draught_m = 3.4
-    unit_scale = 1000.0
-    draught = draught_m * unit_scale
+# ========================================
+# 🎯 CMA-ES Optimization with Soft Perimeter Penalty
+# ========================================
+PERIMETER_TARGET = 13.5
+PENALTY_STRENGTH = 100.0  # Tune this as needed
 
-    print("📥 Reading STEP...")
-    full_shape = read_step_file(step_file)
-    clipped_shape = clip_underwater_brep(full_shape, draught)
-    underwater_mesh = brep_to_trimesh(clipped_shape)
-    underwater_mesh.visual = ColorVisuals(underwater_mesh, face_colors=[50, 100, 255, 255])
+def penalized_objective(z_scaled):
+    # Reject latent points outside the convex hull
+    if delaunay.find_simplex([z_scaled]) < 0:
+        return 1e6
 
-    local_point = compute_waterplane_aft_point(underwater_mesh, draught * 0.001)
-    if local_point is not None:
-        print(f"📏 Local point (m): X={local_point[0]:.3f}, Y={local_point[1]:.3f}, Z={local_point[2]:.3f}")
-    else:
-        print("⚠️ Could not compute local point")
+    # De-normalize latent vector
+    z = scaler_z.inverse_transform([z_scaled])[0]
+    z_tensor = torch.tensor(z, dtype=torch.float32).unsqueeze(0)
 
-    plot_views(underwater_mesh, local_point)
-    compute_hydrostatics(underwater_mesh, draught, local_point)
+    # Decode and de-normalize coordinates
+    with torch.no_grad():
+        decoded = best_decoder(z_tensor).numpy().reshape(NUM_POINTS + 1, 2)
+    decoded[:, 0] = (decoded[:, 0] * 2 * A_MAX) - A_MAX
+    decoded[:, 1] = (decoded[:, 1] * 2 * B_MAX) - B_MAX
 
-    print("🧭 Launching 3D viewer...")
-    Scene([underwater_mesh]).show()
+    # Evaluate geometry
+    area, perimeter = compute_geometry(decoded)
 
+    # Apply soft constraint as penalty term
+    perimeter_penalty = ((perimeter - PERIMETER_TARGET) / PERIMETER_TARGET) ** 2
+    total_loss = -area + PENALTY_STRENGTH * perimeter_penalty
 
-if __name__ == "__main__":
-    main()
+    return total_loss
+
+# ========================================
+# 🧠 CMA-ES Optimization
+# ========================================
+x0 = np.mean(Z_scaled, axis=0)
+sigma0 = 0.2
+opts = {
+    "bounds": [z_min.tolist(), z_max.tolist()],
+    "popsize": 20,
+    "tolfun": 1e-6,
+    "maxfevals": 10000,
+    "verb_disp": 1
+}
+es = cma.CMAEvolutionStrategy(x0.tolist(), sigma0, opts)
+es.optimize(penalized_objective)
+
+# ========================================
+# 🔓 Decode best latent vector
+# ========================================
+best_z_scaled = es.result.xbest
+best_z = scaler_z.inverse_transform([best_z_scaled])[0]
+z_tensor = torch.tensor(best_z, dtype=torch.float32).unsqueeze(0)
+decoded = best_decoder(z_tensor).detach().numpy().reshape(NUM_POINTS + 1, 2)
+
+# ✅ De-normalize decoded coordinates
+decoded[:, 0] = (decoded[:, 0] * 2 * A_MAX) - A_MAX
+decoded[:, 1] = (decoded[:, 1] * 2 * B_MAX) - B_MAX
+area, perimeter = compute_geometry(decoded)
+
+# ========================================
+# 🖼️ Plot optimized shape
+# ========================================
+plt.figure(figsize=(6, 6))
+plt.plot(decoded[:, 0], decoded[:, 1], color='green')
+plt.gca().set_aspect("equal")
+plt.title(f"Optimized Shape (Max Area, Perimeter ≈ {perimeter:.2f})")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
